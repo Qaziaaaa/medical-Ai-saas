@@ -15,8 +15,28 @@ const app = express();
 
 // ── Security middleware ────────────────────────────────────────────────────────
 app.use(helmet());
+
+// Allow both the configured origin and any Vercel preview deployments
+const allowedOrigins = [
+  process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
+  // Strip trailing slash variant
+  (process.env.FRONTEND_ORIGIN || 'http://localhost:5173').replace(/\/$/, ''),
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN || 'http://localhost:5173',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    // Allow if origin matches any allowed origin (with or without trailing slash)
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    const isAllowed = allowedOrigins.some(o => o.replace(/\/$/, '') === normalizedOrigin);
+    if (isAllowed) return callback(null, true);
+    // Also allow any vercel.app subdomain for preview deployments
+    if (normalizedOrigin.endsWith('.vercel.app')) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
 
