@@ -1,7 +1,40 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, Component } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute'
 import Spinner from '../components/ui/Spinner'
+
+// ---------------------------------------------------------------------------
+// Error boundary — catches render errors and shows a readable message
+// ---------------------------------------------------------------------------
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false, error: null }
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex h-screen flex-col items-center justify-center gap-4 p-8 text-center">
+          <div className="text-4xl">⚠️</div>
+          <h1 className="text-xl font-semibold text-neutral-900">Something went wrong</h1>
+          <p className="max-w-md text-sm text-neutral-500">
+            {this.state.error?.message || 'An unexpected error occurred.'}
+          </p>
+          <button
+            onClick={() => window.location.href = '/login'}
+            className="mt-2 rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700"
+          >
+            Back to Login
+          </button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Lazy-loaded page components
@@ -34,7 +67,8 @@ function PageLoader() {
 // ---------------------------------------------------------------------------
 export default function AppRoutes() {
   return (
-    <Suspense fallback={<PageLoader />}>
+    <ErrorBoundary>
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* ── Public routes ─────────────────────────────────────────────── */}
         <Route path="/login"        element={<LoginPage />} />
@@ -65,5 +99,6 @@ export default function AppRoutes() {
         </Route>
       </Routes>
     </Suspense>
+    </ErrorBoundary>
   )
 }
