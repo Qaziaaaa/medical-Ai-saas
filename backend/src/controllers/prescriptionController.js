@@ -33,6 +33,7 @@ const getOne = asyncHandler(async (req, res) => {
 const create = asyncHandler(async (req, res) => {
   const prescription = await prescriptionService.createPrescription({
     ...req.body,
+    patient: req.body.patientId || req.body.patient,
     doctor: req.user.id,
   });
   sendSuccess(res, { prescription }, 'Prescription created successfully', 201);

@@ -100,7 +100,7 @@ function errorHandler(err, req, res, next) {
   if (err.isOperational === true) {
     return res
       .status(err.statusCode)
-      .json(buildBody(err.message, [], err.stack));
+      .json(buildBody(err.message, err.errors || [], err.stack));
   }
 
   // ── Unknown / programming errors ───────────────────────────────────────────
