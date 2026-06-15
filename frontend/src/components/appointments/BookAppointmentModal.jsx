@@ -11,7 +11,7 @@ const EMPTY_FORM = {
 
 function BookAppointmentModal({ isOpen, onClose, onSubmit, loading = false }) {
 
-  const [form, setForm] = useState(emptyForm)
+  const [form, setForm] = useState(EMPTY_FORM)
   const [errors, setErrors] = useState({})
   const [conflictError, setConflictError] = useState(null)
   const [patients, setPatients] = useState([])
