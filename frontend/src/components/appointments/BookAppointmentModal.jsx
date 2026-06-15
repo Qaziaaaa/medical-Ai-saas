@@ -1,35 +1,40 @@
 import { useState, useEffect } from 'react'
-import { Modal, Button, Input } from '../ui'
+import { Modal, Button } from '../ui'
+import apiClient from '../../lib/axios'
 
-/**
- * BookAppointmentModal — form to create a new appointment.
- *
- * Props:
- *   isOpen    — controls modal visibility
- *   onClose   — called when the modal should close
- *   onSubmit  — async fn(formData) called on valid submit
- *   loading   — external loading state
- */
+const EMPTY_FORM = {
+  patient: '',
+  doctor: '',
+  scheduledAt: '',
+  reason: '',
+}
+
 function BookAppointmentModal({ isOpen, onClose, onSubmit, loading = false }) {
-  const emptyForm = {
-    patient: '',
-    doctor: '',
-    scheduledAt: '',
-    reason: '',
-  }
 
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState({})
   const [conflictError, setConflictError] = useState(null)
+  const [patients, setPatients] = useState([])
+  const [doctors, setDoctors] = useState([])
+  const [loadingOptions, setLoadingOptions] = useState(false)
 
-  // Reset form when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      setForm(emptyForm)
+      setForm(EMPTY_FORM)
       setErrors({})
       setConflictError(null)
+      setLoadingOptions(true)
+      Promise.all([
+        apiClient.get('/api/patients?limit=100').then(r => r.data?.data?.patients ?? r.data?.data ?? []),
+        apiClient.get('/api/users/doctors').then(r => r.data?.data?.doctors ?? []),
+      ])
+        .then(([patientsData, doctorsData]) => {
+          setPatients(patientsData)
+          setDoctors(doctorsData)
+        })
+        .catch(() => {})
+        .finally(() => setLoadingOptions(false))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen])
 
   function handleChange(e) {
@@ -43,8 +48,8 @@ function BookAppointmentModal({ isOpen, onClose, onSubmit, loading = false }) {
 
   function validate() {
     const newErrors = {}
-    if (!form.patient.trim()) newErrors.patient = 'Patient is required'
-    if (!form.doctor.trim()) newErrors.doctor = 'Doctor is required'
+    if (!form.patient) newErrors.patient = 'Patient is required'
+    if (!form.doctor) newErrors.doctor = 'Doctor is required'
     if (!form.scheduledAt) newErrors.scheduledAt = 'Date and time is required'
     return newErrors
   }
@@ -71,7 +76,6 @@ function BookAppointmentModal({ isOpen, onClose, onSubmit, loading = false }) {
             : 'This time slot is already booked. Please choose a different time.'
         )
       }
-      // Other errors are handled by the parent
     }
   }
 
@@ -79,36 +83,36 @@ function BookAppointmentModal({ isOpen, onClose, onSubmit, loading = false }) {
     <Modal isOpen={isOpen} onClose={onClose} title="Book Appointment" size="md">
       <form onSubmit={handleSubmit} noValidate>
         <div className="flex flex-col gap-4">
-          {/* Conflict error banner */}
           {conflictError && (
             <div className="rounded-md bg-warning-50 border border-warning-200 px-4 py-3 text-sm text-warning-800" role="alert">
               {conflictError}
             </div>
           )}
 
-          {/* Patient */}
-          <Input
+          <SelectField
             label="Patient"
             name="patient"
             value={form.patient}
             onChange={handleChange}
-            placeholder="Enter patient ID"
-            required
+            options={patients}
+            optionValue="_id"
+            optionLabel="fullName"
+            placeholder={loadingOptions ? 'Loading patients...' : 'Select a patient'}
             error={errors.patient}
           />
 
-          {/* Doctor */}
-          <Input
+          <SelectField
             label="Doctor"
             name="doctor"
             value={form.doctor}
             onChange={handleChange}
-            placeholder="Enter doctor ID"
-            required
+            options={doctors}
+            optionValue="_id"
+            optionLabel="name"
+            placeholder={loadingOptions ? 'Loading doctors...' : 'Select a doctor'}
             error={errors.doctor}
           />
 
-          {/* Scheduled At */}
           <div className="flex flex-col gap-1">
             <label htmlFor="scheduledAt" className="text-sm font-medium text-neutral-700">
               Date &amp; Time
@@ -135,7 +139,6 @@ function BookAppointmentModal({ isOpen, onClose, onSubmit, loading = false }) {
             )}
           </div>
 
-          {/* Reason */}
           <div className="flex flex-col gap-1">
             <label htmlFor="reason" className="text-sm font-medium text-neutral-700">
               Reason
@@ -146,7 +149,7 @@ function BookAppointmentModal({ isOpen, onClose, onSubmit, loading = false }) {
               value={form.reason}
               onChange={handleChange}
               rows={3}
-              placeholder="Brief reason for the appointment…"
+              placeholder="Brief reason for the appointment..."
               className={[
                 'block w-full rounded-md border px-3 py-2 text-sm text-neutral-900',
                 'placeholder:text-neutral-400 resize-y',
@@ -158,7 +161,6 @@ function BookAppointmentModal({ isOpen, onClose, onSubmit, loading = false }) {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="mt-6 flex justify-end gap-3">
           <Button variant="secondary" type="button" onClick={onClose} disabled={loading}>
             Cancel
@@ -169,6 +171,43 @@ function BookAppointmentModal({ isOpen, onClose, onSubmit, loading = false }) {
         </div>
       </form>
     </Modal>
+  )
+}
+
+function SelectField({ label, name, value, onChange, options, optionValue, optionLabel, placeholder, error }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label htmlFor={name} className="text-sm font-medium text-neutral-700">
+        {label}
+        <span className="ml-0.5 text-danger-500" aria-hidden="true">*</span>
+      </label>
+      <select
+        id={name}
+        name={name}
+        value={value}
+        onChange={onChange}
+        aria-invalid={!!error}
+        className={[
+          'block w-full rounded-md border px-3 py-2 text-sm',
+          'transition-colors duration-150',
+          'focus:outline-none focus:ring-2 focus:ring-offset-0',
+          error
+            ? 'border-danger-500 focus:border-danger-500 focus:ring-danger-500/30'
+            : 'border-neutral-300 focus:border-primary-500 focus:ring-primary-500/30',
+          !value ? 'text-neutral-400' : 'text-neutral-900',
+        ].join(' ')}
+      >
+        <option value="" disabled>{placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt[optionValue]} value={opt[optionValue]}>
+            {opt[optionLabel]}
+          </option>
+        ))}
+      </select>
+      {error && (
+        <p role="alert" className="text-xs text-danger-500">{error}</p>
+      )}
+    </div>
   )
 }
 
