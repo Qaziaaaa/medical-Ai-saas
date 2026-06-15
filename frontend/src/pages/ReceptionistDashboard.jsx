@@ -1,4 +1,4 @@
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import { DashboardLayout } from '../components/layout'
 import { Card, Badge } from '../components/ui'
 
@@ -40,7 +40,7 @@ export default function ReceptionistDashboard() {
               Good morning, {user?.name?.split(' ')[0] ?? 'there'} 👋
             </h2>
             <p className="mt-1 text-sm text-neutral-500">
-              Here's a summary of today's clinic activity.
+               Here&apos;s a summary of today&apos;s clinic activity.
             </p>
           </div>
           <Badge variant="success" label="Receptionist" />
@@ -83,7 +83,7 @@ export default function ReceptionistDashboard() {
 
       {/* Quick actions */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Card title="Today's Schedule" subtitle="Appointments booked for today">
+        <Card title="Today&apos;s Schedule" subtitle="Appointments booked for today">
           <p className="text-sm text-neutral-400 italic">
             Appointment data will appear here once the appointments module is connected.
           </p>

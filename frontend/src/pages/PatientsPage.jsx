@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import { usePatients } from '../hooks/usePatients'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import { Button, Badge, Spinner, EmptyState } from '../components/ui'

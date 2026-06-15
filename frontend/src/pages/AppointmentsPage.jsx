@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import { useAppointments } from '../hooks/useAppointments'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import { Button, Badge, Spinner, EmptyState } from '../components/ui'

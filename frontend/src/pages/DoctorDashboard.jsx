@@ -1,4 +1,4 @@
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import { DashboardLayout } from '../components/layout'
 import { Card, Badge } from '../components/ui'
 
@@ -40,7 +40,7 @@ export default function DoctorDashboard() {
               Good morning, {user?.name?.split(' ')[0] ?? 'Doctor'} 👋
             </h2>
             <p className="mt-1 text-sm text-neutral-500">
-              Here's a summary of your clinic activity today.
+               Here&apos;s a summary of your clinic activity today.
             </p>
           </div>
           <Badge variant="info" label="Doctor" />
@@ -50,7 +50,7 @@ export default function DoctorDashboard() {
       {/* Stats grid */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Today's Appointments"
+           label="Today&apos;s Appointments"
           value="—"
           trend="Loading…"
           icon={

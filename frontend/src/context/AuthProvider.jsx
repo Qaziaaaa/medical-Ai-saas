@@ -1,18 +1,7 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import apiClient from '../lib/axios.js'
-
-/**
- * AuthContext — global authentication state.
- *
- * Shape:
- *   { user, token, role, isAuthenticated, login, logout }
- *
- * localStorage keys used:
- *   'clinic_token' — JWT string
- *   'clinic_user'  — JSON-serialized user object
- */
-const AuthContext = createContext(null)
+import { AuthContext } from './AuthContext'
 
 export function AuthProvider({ children }) {
   const navigate = useNavigate()
@@ -36,11 +25,6 @@ export function AuthProvider({ children }) {
     }
   })
 
-  /**
-   * login(credentials) — POST /api/auth/login
-   * Stores token + user in state and localStorage, then navigates
-   * to the role-appropriate dashboard.
-   */
   const login = useCallback(
     async (credentials) => {
       const response = await apiClient.post('/api/auth/login', credentials)
@@ -62,9 +46,6 @@ export function AuthProvider({ children }) {
     [navigate]
   )
 
-  /**
-   * logout() — clears state and localStorage, navigates to /login.
-   */
   const logout = useCallback(() => {
     localStorage.removeItem('clinic_token')
     localStorage.removeItem('clinic_user')
@@ -87,11 +68,3 @@ export function AuthProvider({ children }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
-
-/**
- * useAuth — convenience hook to consume AuthContext.
- * Throws if used outside <AuthProvider>.
- */
-export const useAuth = () => useContext(AuthContext)
-
-export default AuthContext

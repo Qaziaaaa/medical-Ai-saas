@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import { Button, Card, Skeleton } from '../components/ui'
 import { PatientFormModal } from '../components/patients'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import apiClient from '../lib/axios'
 
 /**

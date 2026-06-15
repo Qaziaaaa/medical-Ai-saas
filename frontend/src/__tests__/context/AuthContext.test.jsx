@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
-import { AuthProvider, useAuth } from '../../context/AuthContext'
+import { AuthProvider } from '../../context/AuthProvider'
+import { useAuth } from '../../hooks/useAuth'
 import apiClient from '../../lib/axios'
 
 // Mock the apiClient so we don't make real HTTP calls

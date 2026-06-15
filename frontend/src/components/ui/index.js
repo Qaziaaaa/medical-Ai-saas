@@ -9,4 +9,5 @@ export { default as Modal }        from './Modal';
 export { default as Spinner }      from './Spinner';
 export { default as Skeleton }     from './Skeleton';
 export { default as EmptyState }   from './EmptyState';
-export { default as ToastProvider, toast } from './ToastProvider';
+export { default as ToastProvider } from './ToastProvider';
+export { default as toast } from './toast';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Toaster, toast as hotToast } from 'react-hot-toast';
+import { Toaster } from 'react-hot-toast';
 
 /**
  * ToastProvider — wraps react-hot-toast's <Toaster> with consistent
@@ -66,11 +66,5 @@ function ToastProvider() {
     />
   );
 }
-
-/**
- * Re-export the toast utility so consumers can import from one place:
- *   import { toast } from '@/components/ui';
- */
-export const toast = hotToast;
 
 export default ToastProvider;

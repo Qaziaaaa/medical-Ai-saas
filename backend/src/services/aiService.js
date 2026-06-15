@@ -1,6 +1,6 @@
 'use strict';
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const Groq = require('groq-sdk');
 const AppError = require('../utils/AppError');
 
 const TIMEOUT_MS = 15000;
@@ -32,25 +32,26 @@ Respond ONLY with a valid JSON object in this exact format:
 }`;
 }
 
-async function callGeminiWithTimeout(prompt) {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+async function callGroqWithTimeout(prompt) {
+  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
   const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Gemini API timeout')), TIMEOUT_MS)
+    setTimeout(() => reject(new Error('GROQ API timeout')), TIMEOUT_MS)
   );
 
   const result = await Promise.race([
-    model.generateContent(prompt),
+    groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'llama-3.3-70b-versatile',
+    }),
     timeoutPromise,
   ]);
 
   return result;
 }
 
-function parseGeminiResponse(result) {
-  const text = result.response.text();
-  // Extract JSON from response (may be wrapped in markdown code blocks)
+function parseGroqResponse(result) {
+  const text = result.choices[0]?.message?.content || '';
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error('No JSON found in response');
 
@@ -65,7 +66,6 @@ function parseGeminiResponse(result) {
 }
 
 async function checkSymptoms({ symptoms, patientAge, patientGender, medicalHistory }) {
-  // Input validation
   if (!symptoms || (Array.isArray(symptoms) && symptoms.length === 0)) {
     throw new AppError('Symptoms are required', 422);
   }
@@ -76,14 +76,13 @@ async function checkSymptoms({ symptoms, patientAge, patientGender, medicalHisto
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const result = await callGeminiWithTimeout(prompt);
-      return parseGeminiResponse(result);
+      const result = await callGroqWithTimeout(prompt);
+      return parseGroqResponse(result);
     } catch (err) {
       if (attempt === MAX_RETRIES) {
         console.error('[AIService] All retries exhausted:', err.message);
         return FALLBACK_RESPONSE;
       }
-      // Exponential backoff: 1s, 2s
       await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
     }
   }
