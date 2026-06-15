@@ -12,8 +12,8 @@ import { Modal, Button, Input } from '../ui'
  */
 function BookAppointmentModal({ isOpen, onClose, onSubmit, loading = false }) {
   const emptyForm = {
-    patientId: '',
-    doctorId: '',
+    patient: '',
+    doctor: '',
     scheduledAt: '',
     reason: '',
   }
@@ -43,8 +43,8 @@ function BookAppointmentModal({ isOpen, onClose, onSubmit, loading = false }) {
 
   function validate() {
     const newErrors = {}
-    if (!form.patientId.trim()) newErrors.patientId = 'Patient ID is required'
-    if (!form.doctorId.trim()) newErrors.doctorId = 'Doctor ID is required'
+    if (!form.patient.trim()) newErrors.patient = 'Patient is required'
+    if (!form.doctor.trim()) newErrors.doctor = 'Doctor is required'
     if (!form.scheduledAt) newErrors.scheduledAt = 'Date and time is required'
     return newErrors
   }
@@ -86,26 +86,26 @@ function BookAppointmentModal({ isOpen, onClose, onSubmit, loading = false }) {
             </div>
           )}
 
-          {/* Patient ID */}
+          {/* Patient */}
           <Input
-            label="Patient ID"
-            name="patientId"
-            value={form.patientId}
+            label="Patient"
+            name="patient"
+            value={form.patient}
             onChange={handleChange}
             placeholder="Enter patient ID"
             required
-            error={errors.patientId}
+            error={errors.patient}
           />
 
-          {/* Doctor ID */}
+          {/* Doctor */}
           <Input
-            label="Doctor ID"
-            name="doctorId"
-            value={form.doctorId}
+            label="Doctor"
+            name="doctor"
+            value={form.doctor}
             onChange={handleChange}
             placeholder="Enter doctor ID"
             required
-            error={errors.doctorId}
+            error={errors.doctor}
           />
 
           {/* Scheduled At */}
