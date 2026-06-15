@@ -60,6 +60,7 @@ app.use('/api/appointments', require('./routes/appointments'));
 app.use('/api/prescriptions', require('./routes/prescriptions'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/dashboard', require('./routes/dashboard'));
 
 // ── 404 handler ────────────────────────────────────────────────────────────────
 app.use((_req, res) => {
