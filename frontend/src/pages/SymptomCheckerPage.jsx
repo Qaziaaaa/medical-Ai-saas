@@ -49,8 +49,8 @@ export default function SymptomCheckerPage() {
     try {
       await checkSymptoms({
         symptoms: form.symptoms.trim(),
-        age: Number(form.age),
-        gender: form.gender,
+        patientAge: Number(form.age),
+        patientGender: form.gender,
         medicalHistory: form.medicalHistory.trim() || undefined,
       })
     } catch {
