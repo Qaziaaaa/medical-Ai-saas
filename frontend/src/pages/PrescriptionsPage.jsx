@@ -133,12 +133,12 @@ export default function PrescriptionsPage() {
                     <tr key={rx._id} className="hover:bg-neutral-50 transition-colors">
                       {/* Patient */}
                       <td className="px-4 py-3 text-sm font-medium text-neutral-900">
-                        {rx.patient?.fullName ?? rx.patientId ?? '—'}
+                        {rx.patient?.fullName ?? '—'}
                       </td>
 
                       {/* Doctor */}
                       <td className="px-4 py-3 text-sm text-neutral-700">
-                        {rx.doctor?.name ?? rx.doctorId ?? '—'}
+                        {rx.doctor?.name ?? '—'}
                       </td>
 
                       {/* Date */}

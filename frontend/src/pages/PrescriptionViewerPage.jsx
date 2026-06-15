@@ -94,7 +94,7 @@ export default function PrescriptionViewerPage() {
                     Doctor
                   </p>
                   <p className="text-sm font-medium text-neutral-900">
-                    {prescription.doctor?.name ?? prescription.doctorId ?? '—'}
+                    {prescription.doctor?.name ?? '—'}
                   </p>
                   {prescription.doctor?.email && (
                     <p className="text-sm text-neutral-500">{prescription.doctor.email}</p>
@@ -110,7 +110,7 @@ export default function PrescriptionViewerPage() {
                     Patient
                   </p>
                   <p className="text-sm font-medium text-neutral-900">
-                    {prescription.patient?.fullName ?? prescription.patientId ?? '—'}
+                    {prescription.patient?.fullName ?? '—'}
                   </p>
                   {prescription.patient?.contactNumber && (
                     <p className="text-sm text-neutral-500">{prescription.patient.contactNumber}</p>

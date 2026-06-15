@@ -215,12 +215,12 @@ export default function AppointmentsPage() {
                     <tr key={appt._id} className="hover:bg-neutral-50 transition-colors">
                       {/* Patient */}
                       <td className="px-4 py-3 text-sm font-medium text-neutral-900">
-                        {appt.patient?.fullName ?? appt.patientId ?? '—'}
+                        {appt.patient?.fullName ?? '—'}
                       </td>
 
                       {/* Doctor */}
                       <td className="px-4 py-3 text-sm text-neutral-700">
-                        {appt.doctor?.name ?? appt.doctorId ?? '—'}
+                        {appt.doctor?.name ?? '—'}
                       </td>
 
                       {/* Date / Time */}

@@ -69,7 +69,7 @@ function PrescriptionFormModal({ isOpen, onClose, onSubmit, loading = false }) {
       return
     }
 
-    await onSubmit({ patientId: patient, medicines, notes })
+    await onSubmit({ patient, medicines, notes })
   }
 
   return (
