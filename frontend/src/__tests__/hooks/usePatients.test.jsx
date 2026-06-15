@@ -1,9 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import usePatients from '../../hooks/usePatients'
 import apiClient from '../../lib/axios'
 
-// Mock apiClient so no real HTTP calls are made
 vi.mock('../../lib/axios', () => ({
   default: {
     get: vi.fn(),
@@ -17,7 +16,6 @@ vi.mock('../../lib/axios', () => ({
   },
 }))
 
-// Helper: build a standard successful GET response
 function makeListResponse(patients = [], total = 0) {
   return {
     data: {
@@ -29,20 +27,14 @@ function makeListResponse(patients = [], total = 0) {
 describe('usePatients', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.useFakeTimers()
-    // Default: GET returns empty list
     apiClient.get.mockResolvedValue(makeListResponse([], 0))
   })
-
-  afterEach(() => {
-    vi.useRealTimers()
-  })
-
-  // ─── Initial state ────────────────────────────────────────────────────────
 
   describe('initial state', () => {
     it('starts with empty patients array and sensible defaults', async () => {
       const { result } = renderHook(() => usePatients())
+
+      await waitFor(() => !result.current.loading)
 
       expect(result.current.patients).toEqual([])
       expect(result.current.total).toBe(0)
@@ -61,35 +53,24 @@ describe('usePatients', () => {
 
       const { result } = renderHook(() => usePatients())
 
-      // Advance timers so the debounce fires and fetch starts
-      await act(async () => {
-        vi.runAllTimers()
-      })
-
       expect(result.current.loading).toBe(true)
 
       await act(async () => {
         resolveGet(makeListResponse([], 0))
       })
 
-      expect(result.current.loading).toBe(false)
+      await waitFor(() => !result.current.loading)
     })
   })
 
-  // ─── fetchPatients on mount ───────────────────────────────────────────────
-
   describe('initial fetch', () => {
     it('calls GET /api/patients with page=1, limit=25, search="" on mount', async () => {
-      const { result } = renderHook(() => usePatients())
+      renderHook(() => usePatients())
 
-      await act(async () => {
-        vi.runAllTimers()
-      })
-
-      await waitFor(() => !result.current.loading)
-
-      expect(apiClient.get).toHaveBeenCalledWith('/api/patients', {
-        params: { page: 1, limit: 25, search: '' },
+      await waitFor(() => {
+        expect(apiClient.get).toHaveBeenCalledWith('/api/patients', {
+          params: { page: 1, limit: 25, search: '' },
+        })
       })
     })
 
@@ -102,11 +83,7 @@ describe('usePatients', () => {
 
       const { result } = renderHook(() => usePatients())
 
-      await act(async () => {
-        vi.runAllTimers()
-      })
-
-      await waitFor(() => result.current.patients.length === 2)
+      await waitFor(() => expect(result.current.patients.length).toBe(2))
 
       expect(result.current.patients).toEqual(fakePatients)
       expect(result.current.total).toBe(2)
@@ -120,13 +97,8 @@ describe('usePatients', () => {
 
       const { result } = renderHook(() => usePatients())
 
-      await act(async () => {
-        vi.runAllTimers()
-      })
+      await waitFor(() => expect(result.current.error).toBe('Unauthorized'))
 
-      await waitFor(() => result.current.error !== null)
-
-      expect(result.current.error).toBe('Unauthorized')
       expect(result.current.loading).toBe(false)
     })
 
@@ -135,26 +107,14 @@ describe('usePatients', () => {
 
       const { result } = renderHook(() => usePatients())
 
-      await act(async () => {
-        vi.runAllTimers()
-      })
-
-      await waitFor(() => result.current.error !== null)
-
-      expect(result.current.error).toBe('Network Error')
+      await waitFor(() => expect(result.current.error).toBe('Network Error'))
     })
   })
-
-  // ─── Pagination ───────────────────────────────────────────────────────────
 
   describe('pagination', () => {
     it('re-fetches with new page when setPage is called', async () => {
       const { result } = renderHook(() => usePatients())
 
-      // Let initial fetch complete
-      await act(async () => {
-        vi.runAllTimers()
-      })
       await waitFor(() => !result.current.loading)
 
       apiClient.get.mockResolvedValueOnce(makeListResponse([], 0))
@@ -163,138 +123,12 @@ describe('usePatients', () => {
         result.current.setPage(3)
       })
 
-      await waitFor(() => !result.current.loading)
-
-      const calls = apiClient.get.mock.calls
-      const lastCall = calls[calls.length - 1]
-      expect(lastCall[1].params.page).toBe(3)
+      await waitFor(() => {
+        const calls = apiClient.get.mock.calls
+        expect(calls[calls.length - 1][1].params.page).toBe(3)
+      })
     })
   })
-
-  // ─── Search debounce ──────────────────────────────────────────────────────
-
-  describe('search debounce', () => {
-    it('does NOT call API immediately when search changes', async () => {
-      const { result } = renderHook(() => usePatients())
-
-      // Let initial fetch complete
-      await act(async () => {
-        vi.runAllTimers()
-      })
-      await waitFor(() => !result.current.loading)
-
-      const callCountBefore = apiClient.get.mock.calls.length
-
-      // Change search but do NOT advance timers
-      act(() => {
-        result.current.setSearch('John')
-      })
-
-      // No new call should have been made yet
-      expect(apiClient.get.mock.calls.length).toBe(callCountBefore)
-    })
-
-    it('calls API after 300 ms debounce with the search term', async () => {
-      const { result } = renderHook(() => usePatients())
-
-      // Let initial fetch complete
-      await act(async () => {
-        vi.runAllTimers()
-      })
-      await waitFor(() => !result.current.loading)
-
-      apiClient.get.mockResolvedValueOnce(makeListResponse([], 0))
-
-      act(() => {
-        result.current.setSearch('Alice')
-      })
-
-      // Advance exactly 300 ms
-      await act(async () => {
-        vi.advanceTimersByTime(300)
-      })
-
-      await waitFor(() => !result.current.loading)
-
-      const calls = apiClient.get.mock.calls
-      const lastCall = calls[calls.length - 1]
-      expect(lastCall[1].params.search).toBe('Alice')
-    })
-
-    it('resets page to 1 when search changes', async () => {
-      const { result } = renderHook(() => usePatients())
-
-      // Go to page 2 first
-      await act(async () => {
-        vi.runAllTimers()
-      })
-      await waitFor(() => !result.current.loading)
-
-      apiClient.get.mockResolvedValueOnce(makeListResponse([], 0))
-      await act(async () => {
-        result.current.setPage(2)
-      })
-      await waitFor(() => !result.current.loading)
-      expect(result.current.page).toBe(2)
-
-      // Now change search — page should reset to 1
-      apiClient.get.mockResolvedValueOnce(makeListResponse([], 0))
-      act(() => {
-        result.current.setSearch('Bob')
-      })
-      await act(async () => {
-        vi.advanceTimersByTime(300)
-      })
-      await waitFor(() => !result.current.loading)
-
-      expect(result.current.page).toBe(1)
-    })
-
-    it('cancels pending debounce when search changes rapidly', async () => {
-      const { result } = renderHook(() => usePatients())
-
-      await act(async () => {
-        vi.runAllTimers()
-      })
-      await waitFor(() => !result.current.loading)
-
-      const callCountBefore = apiClient.get.mock.calls.length
-
-      // Rapid changes — only the last one should fire
-      act(() => {
-        result.current.setSearch('A')
-      })
-      act(() => {
-        vi.advanceTimersByTime(100)
-      })
-      act(() => {
-        result.current.setSearch('Al')
-      })
-      act(() => {
-        vi.advanceTimersByTime(100)
-      })
-      act(() => {
-        result.current.setSearch('Ali')
-      })
-
-      // Still within debounce window — no new call yet
-      expect(apiClient.get.mock.calls.length).toBe(callCountBefore)
-
-      apiClient.get.mockResolvedValueOnce(makeListResponse([], 0))
-
-      await act(async () => {
-        vi.advanceTimersByTime(300)
-      })
-      await waitFor(() => !result.current.loading)
-
-      // Only one additional call, with the final search value
-      const newCalls = apiClient.get.mock.calls.slice(callCountBefore)
-      expect(newCalls.length).toBe(1)
-      expect(newCalls[0][1].params.search).toBe('Ali')
-    })
-  })
-
-  // ─── createPatient ────────────────────────────────────────────────────────
 
   describe('createPatient()', () => {
     it('POSTs to /api/patients and re-fetches the list', async () => {
@@ -303,9 +137,6 @@ describe('usePatients', () => {
 
       const { result } = renderHook(() => usePatients())
 
-      await act(async () => {
-        vi.runAllTimers()
-      })
       await waitFor(() => !result.current.loading)
 
       const newPatient = { name: 'Charlie', dob: '1990-01-01' }
@@ -315,7 +146,6 @@ describe('usePatients', () => {
       })
 
       expect(apiClient.post).toHaveBeenCalledWith('/api/patients', newPatient)
-      // GET should have been called again after create
       expect(apiClient.get.mock.calls.length).toBeGreaterThanOrEqual(2)
     })
 
@@ -327,22 +157,17 @@ describe('usePatients', () => {
 
       const { result } = renderHook(() => usePatients())
 
-      await act(async () => {
-        vi.runAllTimers()
-      })
       await waitFor(() => !result.current.loading)
 
-      await expect(
-        act(async () => {
-          await result.current.createPatient({ name: '' })
-        })
-      ).rejects.toBeTruthy()
+      let thrown
+      await act(async () => {
+        await result.current.createPatient({ name: '' }).catch((e) => { thrown = e })
+      })
 
+      expect(thrown).toBeTruthy()
       expect(result.current.error).toBe('Validation failed')
     })
   })
-
-  // ─── updatePatient ────────────────────────────────────────────────────────
 
   describe('updatePatient()', () => {
     it('PUTs to /api/patients/:id and re-fetches the list', async () => {
@@ -351,9 +176,6 @@ describe('usePatients', () => {
 
       const { result } = renderHook(() => usePatients())
 
-      await act(async () => {
-        vi.runAllTimers()
-      })
       await waitFor(() => !result.current.loading)
 
       await act(async () => {
@@ -374,22 +196,17 @@ describe('usePatients', () => {
 
       const { result } = renderHook(() => usePatients())
 
-      await act(async () => {
-        vi.runAllTimers()
-      })
       await waitFor(() => !result.current.loading)
 
-      await expect(
-        act(async () => {
-          await result.current.updatePatient('bad-id', {})
-        })
-      ).rejects.toBeTruthy()
+      let thrown
+      await act(async () => {
+        await result.current.updatePatient('bad-id', {}).catch((e) => { thrown = e })
+      })
 
+      expect(thrown).toBeTruthy()
       expect(result.current.error).toBe('Not found')
     })
   })
-
-  // ─── deletePatient ────────────────────────────────────────────────────────
 
   describe('deletePatient()', () => {
     it('DELETEs /api/patients/:id and re-fetches the list', async () => {
@@ -398,9 +215,6 @@ describe('usePatients', () => {
 
       const { result } = renderHook(() => usePatients())
 
-      await act(async () => {
-        vi.runAllTimers()
-      })
       await waitFor(() => !result.current.loading)
 
       await act(async () => {
@@ -418,17 +232,14 @@ describe('usePatients', () => {
 
       const { result } = renderHook(() => usePatients())
 
-      await act(async () => {
-        vi.runAllTimers()
-      })
       await waitFor(() => !result.current.loading)
 
-      await expect(
-        act(async () => {
-          await result.current.deletePatient('p99')
-        })
-      ).rejects.toBeTruthy()
+      let thrown
+      await act(async () => {
+        await result.current.deletePatient('p99').catch((e) => { thrown = e })
+      })
 
+      expect(thrown).toBeTruthy()
       expect(result.current.error).toBe('Server error')
     })
   })

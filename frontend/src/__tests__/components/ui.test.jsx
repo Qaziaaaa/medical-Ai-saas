@@ -171,12 +171,12 @@ describe('Spinner', () => {
 
   it('applies sm size class', () => {
     const { container } = render(<Spinner size="sm" />);
-    expect(container.querySelector('svg').className).toMatch(/h-4/);
+    expect(container.querySelector('svg').getAttribute('class')).toMatch(/h-4/);
   });
 
   it('applies lg size class', () => {
     const { container } = render(<Spinner size="lg" />);
-    expect(container.querySelector('svg').className).toMatch(/h-12/);
+    expect(container.querySelector('svg').getAttribute('class')).toMatch(/h-12/);
   });
 });
 
