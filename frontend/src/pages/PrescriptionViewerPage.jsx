@@ -1,10 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import apiClient from '../lib/axios.js'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import { Button, Spinner, Badge } from '../components/ui'
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
 
 function formatDate(iso) {
   if (!iso) return '—'
@@ -28,7 +26,7 @@ export default function PrescriptionViewerPage() {
       .get(`/api/prescriptions/${id}`)
       .then((res) => {
         const { data } = res.data
-        setPrescription(data ?? res.data)
+        setPrescription(data?.prescription ?? data ?? null)
       })
       .catch((err) => {
         setError(err.response?.data?.message || err.message || 'Failed to load prescription.')
@@ -36,9 +34,20 @@ export default function PrescriptionViewerPage() {
       .finally(() => setLoading(false))
   }, [id])
 
-  function handleDownloadPDF() {
-    window.open(`${API_BASE_URL}/api/prescriptions/${id}/pdf`, '_blank', 'noopener,noreferrer')
-  }
+  const handleDownloadPDF = useCallback(() => {
+    apiClient.get(`/api/prescriptions/${id}/pdf`, { responseType: 'blob' })
+      .then((res) => {
+        const url = window.URL.createObjectURL(new Blob([res.data]))
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `prescription-${id}.pdf`
+        a.click()
+        window.URL.revokeObjectURL(url)
+      })
+      .catch((err) => {
+        console.error('PDF download failed:', err)
+      })
+  }, [id])
 
   return (
     <DashboardLayout>
