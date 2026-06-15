@@ -11,8 +11,9 @@ const asyncHandler = require('../utils/asyncHandler');
  * Accessible by: doctor, receptionist
  */
 const list = asyncHandler(async (req, res) => {
-  const prescriptions = await prescriptionService.listPrescriptions(req.query.patientId);
-  sendSuccess(res, { prescriptions }, 'Prescriptions retrieved successfully');
+  const { patientId, page, limit } = req.query;
+  const result = await prescriptionService.listPrescriptions({ patientId, page, limit });
+  sendSuccess(res, result, 'Prescriptions retrieved successfully');
 });
 
 /**

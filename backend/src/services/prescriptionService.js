@@ -54,19 +54,35 @@ async function createPrescription(data) {
 }
 
 /**
- * List all prescriptions for a patient, sorted newest first.
- * Populates the doctor's name and credentials.
+ * List prescriptions with optional patient filter and pagination.
+ * Populates patient name and doctor name/credentials.
  *
- * @param {string} patientId - MongoDB ObjectId string
- * @returns {Promise<object[]>} Array of prescription documents
+ * @param {object} options
+ * @param {string} [options.patientId] - MongoDB ObjectId string (omit for all)
+ * @param {number} [options.page]      - 1-based page number
+ * @param {number} [options.limit]     - Records per page (max 100)
+ * @returns {{ prescriptions: object[], total: number, page: number, limit: number }}
  */
-async function listPrescriptions(patientId) {
-  const prescriptions = await Prescription.find({ patient: patientId })
-    .sort({ createdAt: -1 })
-    .populate('doctor', 'name credentials')
-    .lean();
+async function listPrescriptions({ patientId, page = 1, limit = 25 } = {}) {
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 25));
+  const skip = (pageNum - 1) * limitNum;
 
-  return prescriptions;
+  const filter = {};
+  if (patientId) filter.patient = patientId;
+
+  const [prescriptions, total] = await Promise.all([
+    Prescription.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .populate('patient', 'fullName')
+      .populate('doctor', 'name credentials')
+      .lean(),
+    Prescription.countDocuments(filter),
+  ]);
+
+  return { prescriptions, total, page: pageNum, limit: limitNum };
 }
 
 /**

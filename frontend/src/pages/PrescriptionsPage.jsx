@@ -16,8 +16,11 @@ export default function PrescriptionsPage() {
   const { role } = useAuth()
   const {
     prescriptions,
+    total,
     loading,
     error,
+    page,
+    setPage,
     patientId,
     setPatientId,
     createPrescription,
@@ -29,6 +32,7 @@ export default function PrescriptionsPage() {
   const [searchInput, setSearchInput] = useState('')
 
   const isDoctor = role === 'doctor'
+  const totalPages = Math.ceil(total / 25) || 1
 
   async function handleCreate(data) {
     setSubmitting(true)
@@ -55,7 +59,7 @@ export default function PrescriptionsPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-h2 text-neutral-900">Prescriptions</h2>
-            <p className="text-sm text-neutral-500">{prescriptions.length} prescription{prescriptions.length !== 1 ? 's' : ''}</p>
+            <p className="text-sm text-neutral-500">{total} total prescription{total !== 1 ? 's' : ''}</p>
           </div>
           {isDoctor && (
             <Button variant="primary" onClick={() => setShowModal(true)}>
@@ -177,6 +181,33 @@ export default function PrescriptionsPage() {
           )}
         </div>
       </div>
+
+      {/* ── Pagination ── */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-neutral-500">
+            Page {page} of {totalPages}
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* ── New Prescription Modal ── */}
       <PrescriptionFormModal
