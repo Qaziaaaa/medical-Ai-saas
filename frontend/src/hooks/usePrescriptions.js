@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import apiClient from '../lib/axios.js'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'
-
 /**
  * usePrescriptions — encapsulates prescription list state and operations.
  *
@@ -59,8 +57,20 @@ export function usePrescriptions() {
     [fetchPrescriptions]
   )
 
-  const downloadPDF = useCallback((id) => {
-    window.open(`${API_BASE_URL}/api/prescriptions/${id}/pdf`, '_blank', 'noopener,noreferrer')
+  const downloadPDF = useCallback(async (id) => {
+    try {
+      const response = await apiClient.get(`/api/prescriptions/${id}/pdf`, {
+        responseType: 'blob',
+      })
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `prescription-${id}.pdf`
+      a.click()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('PDF download failed:', err)
+    }
   }, [])
 
   return {
