@@ -19,7 +19,8 @@ function authenticate(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.id, role: decoded.role };
+      req.token = token;
+      req.user = { id: decoded.id, role: decoded.role };
     next();
   } catch (err) {
     // JsonWebTokenError and TokenExpiredError are handled by errorHandler
