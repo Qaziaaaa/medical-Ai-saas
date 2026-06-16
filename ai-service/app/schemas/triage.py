@@ -9,6 +9,8 @@ class TriageRequest(BaseModel):
 
 class TriageResponse(BaseModel):
     triage_level: str = Field(..., description="immediate | urgent | non-urgent | unknown")
-    method: str = Field(..., description="keyword | biobert")
-    matched_keyword: str | None = Field(None, description="Keyword that triggered the match")
+    method: str = Field(..., description="biobert | keyword")
+    confidence: float = Field(0, ge=0, le=1, description="Confidence score from BioBERT")
+    all_scores: dict | None = Field(None, description="All candidate scores from BioBERT")
+    matched_keyword: str | None = Field(None, description="Keyword that triggered keyword match")
     reason: str | None = Field(None, description="Explanation if no match found")

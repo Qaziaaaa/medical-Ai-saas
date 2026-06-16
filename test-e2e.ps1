@@ -69,12 +69,15 @@ Write-Host "`n-- AI Symptom Checker --" -ForegroundColor Yellow
 $r = Invoke-RestMethod "$BASE/api/ai/symptom-check" -Method POST -Headers $h -ContentType "application/json" -Body '{"symptoms":"headache fever","patientAge":30,"patientGender":"male","medicalHistory":"none"}' -TimeoutSec 15
 Check "AI symptom check" $r "possibleConditions"
 
-# 9. AI Triage (keyword-based NLP)
+# 9. AI Triage (BioBERT + keyword)
 Write-Host "`n-- AI Triage --" -ForegroundColor Yellow
-$r = Invoke-RestMethod "$BASE/api/ai/python/analyze/triage" -Method POST -Headers $h -ContentType "application/json" -Body '{"symptoms":"chest pain radiating to left arm","age":55,"gender":"male"}' -TimeoutSec 10
-Check "Triage immediate" $r "triage_level"
-$r = Invoke-RestMethod "$BASE/api/ai/python/analyze/triage" -Method POST -Headers $h -ContentType "application/json" -Body '{"symptoms":"cold and cough"}' -TimeoutSec 10
-Check "Triage non-urgent" $r "triage_level"
+$r = Invoke-RestMethod "$BASE/api/ai/python/analyze/triage" -Method POST -Headers $h -ContentType "application/json" -Body '{"symptoms":"chest pain radiating to left arm","age":55,"gender":"male"}' -TimeoutSec 60
+Check "Triage safety override" $r "triage_level"
+$r = Invoke-RestMethod "$BASE/api/ai/python/analyze/triage" -Method POST -Headers $h -ContentType "application/json" -Body '{"symptoms":"cold and cough"}' -TimeoutSec 60
+Check "Triage keyword" $r "triage_level"
+$r = Invoke-RestMethod "$BASE/api/ai/python/analyze/triage" -Method POST -Headers $h -ContentType "application/json" -Body '{"symptoms":"sprained ankle from running","age":30}' -TimeoutSec 60
+Check "Triage BioBERT" $r "triage_level"
+if ($r.data.method -ne "biobert") { Write-Host "  WARN expected biobert got $($r.data.method)" -ForegroundColor Yellow; $fail++ }
 
 # 10. PDF
 Write-Host "`n-- PDF --" -ForegroundColor Yellow
