@@ -68,8 +68,17 @@ router.post(
   })
 );
 
+// POST /api/ai/python/analyze/risk — patient readmission risk
+router.post(
+  '/analyze/risk',
+  [authenticate, authorize(['doctor'])],
+  asyncHandler(async (req, res) => {
+    const result = await callPython('/analyze/risk', req.body, req.token);
+    res.json({ success: true, data: result });
+  })
+);
+
 // ── Future AI endpoints will go here ─────────────────────────
-// POST /api/ai/python/analyze/risk
 // POST /api/ai/python/reports/generate
 
 module.exports = router;

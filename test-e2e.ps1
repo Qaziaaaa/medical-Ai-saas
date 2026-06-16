@@ -88,7 +88,14 @@ $r = Invoke-RestMethod "$BASE/api/ai/python/analyze/interactions" -Method POST -
 Check "Interaction none" $r "total_pairs"
 if ($r.data.has_interaction -ne $false) { Write-Host "  WARN expected no interaction" -ForegroundColor Yellow; $fail++ }
 
-# 11. PDF
+# 11. Risk Stratification
+Write-Host "`n-- Risk Stratification --" -ForegroundColor Yellow
+$r = Invoke-RestMethod "$BASE/api/ai/python/analyze/risk" -Method POST -Headers $h -ContentType "application/json" -Body '{"age":75,"conditions_count":4,"has_chronic_condition":true,"visits_last_6mo":8}' -TimeoutSec 30
+Check "Risk high" $r "risk_level"
+$r = Invoke-RestMethod "$BASE/api/ai/python/analyze/risk" -Method POST -Headers $h -ContentType "application/json" -Body '{"age":25,"conditions_count":0,"has_chronic_condition":false,"visits_last_6mo":1}' -TimeoutSec 30
+Check "Risk low" $r "risk_level"
+
+# 12. PDF
 Write-Host "`n-- PDF --" -ForegroundColor Yellow
 try {
   $r2 = Invoke-RestMethod "$BASE/api/prescriptions?limit=1" -Headers $h -TimeoutSec 5
