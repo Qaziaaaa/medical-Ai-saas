@@ -55,6 +55,51 @@ async function callPython(endpoint, data = {}, token, method = 'POST') {
 }
 
 /**
+ * Forward a file upload to the Python AI service.
+ *
+ * @param {string} endpoint   - Path on the Python service (e.g. "/analyze/xray")
+ * @param {object} file       - { buffer, originalname, mimetype }
+ * @param {string} token      - JWT from the authenticated user
+ * @returns {Promise<object>}
+ */
+async function callPythonWithFile(endpoint, file, token) {
+  const FormData = require('form-data');
+  const form = new FormData();
+  form.append('file', file.buffer, {
+    filename: file.originalname,
+    contentType: file.mimetype,
+  });
+
+  const url = `${PYTHON_SERVICE_URL}/api/v1${endpoint}`;
+
+  try {
+    const response = await axios.post(url, form, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...form.getHeaders(),
+      },
+      timeout: 60000,
+    });
+    return response.data;
+  } catch (err) {
+    const status = err.response?.status || 503;
+    const message =
+      err.response?.data?.detail ||
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      err.message ||
+      'Python AI service unavailable';
+
+    const error = new Error(message);
+    error.statusCode = status;
+    error.isOperational = true;
+    error.original = err;
+    error.pythonDetail = err.response?.data;
+    throw error;
+  }
+}
+
+/**
  * Quick health check — returns true if the Python service responds.
  */
 async function checkHealth(token) {
@@ -66,4 +111,4 @@ async function checkHealth(token) {
   }
 }
 
-module.exports = { callPython, checkHealth };
+module.exports = { callPython, callPythonWithFile, checkHealth };

@@ -2,10 +2,13 @@
 
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const authenticate = require('../middleware/authenticate');
 const authorize = require('../middleware/authorize');
-const { callPython } = require('../services/aiPythonService');
+const { callPython, callPythonWithFile } = require('../services/aiPythonService');
 const asyncHandler = require('../utils/asyncHandler');
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 /**
  * All routes in this file proxy to the Python AI service.
@@ -52,8 +55,20 @@ router.post(
   })
 );
 
+// POST /api/ai/python/analyze/xray — X-ray image analysis (file upload)
+router.post(
+  '/analyze/xray',
+  [authenticate, authorize(['doctor']), upload.single('file')],
+  asyncHandler(async (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded', data: null });
+    }
+    const result = await callPythonWithFile('/analyze/xray', req.file, req.token);
+    res.json({ success: true, data: result });
+  })
+);
+
 // ── Future AI endpoints will go here ─────────────────────────
-// POST /api/ai/python/analyze/xray
 // POST /api/ai/python/analyze/risk
 // POST /api/ai/python/reports/generate
 
