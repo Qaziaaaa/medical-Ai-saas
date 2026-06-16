@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rootDirectory": "frontend",
+  "name": "medical-ai-saas",
+  "source": "frontend",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
