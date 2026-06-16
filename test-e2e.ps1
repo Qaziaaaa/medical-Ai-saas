@@ -79,7 +79,16 @@ $r = Invoke-RestMethod "$BASE/api/ai/python/analyze/triage" -Method POST -Header
 Check "Triage BioBERT" $r "triage_level"
 if ($r.data.method -ne "biobert") { Write-Host "  WARN expected biobert got $($r.data.method)" -ForegroundColor Yellow; $fail++ }
 
-# 10. PDF
+# 10. Drug Interaction Checker
+Write-Host "`n-- Drug Interactions --" -ForegroundColor Yellow
+$r = Invoke-RestMethod "$BASE/api/ai/python/analyze/interactions" -Method POST -Headers $h -ContentType "application/json" -Body '{"medications":["warfarin","ibuprofen"]}' -TimeoutSec 30
+Check "Interaction found" $r "total_pairs"
+if ($r.data.counts.major -lt 1) { Write-Host "  WARN expected major interaction" -ForegroundColor Yellow; $fail++ }
+$r = Invoke-RestMethod "$BASE/api/ai/python/analyze/interactions" -Method POST -Headers $h -ContentType "application/json" -Body '{"medications":["vitamin C","acetaminophen"]}' -TimeoutSec 30
+Check "Interaction none" $r "total_pairs"
+if ($r.data.has_interaction -ne $false) { Write-Host "  WARN expected no interaction" -ForegroundColor Yellow; $fail++ }
+
+# 11. PDF
 Write-Host "`n-- PDF --" -ForegroundColor Yellow
 try {
   $r2 = Invoke-RestMethod "$BASE/api/prescriptions?limit=1" -Headers $h -TimeoutSec 5

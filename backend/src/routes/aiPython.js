@@ -42,8 +42,17 @@ router.post(
   })
 );
 
+// POST /api/ai/python/analyze/interactions — drug interaction checker
+router.post(
+  '/analyze/interactions',
+  [authenticate, authorize(['doctor'])],
+  asyncHandler(async (req, res) => {
+    const result = await callPython('/analyze/interactions', req.body, req.token);
+    res.json({ success: true, data: result });
+  })
+);
+
 // ── Future AI endpoints will go here ─────────────────────────
-// POST /api/ai/python/analyze/interactions
 // POST /api/ai/python/analyze/xray
 // POST /api/ai/python/analyze/risk
 // POST /api/ai/python/reports/generate
