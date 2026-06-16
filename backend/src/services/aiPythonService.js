@@ -37,17 +37,19 @@ async function callPython(endpoint, data = {}, token, method = 'POST') {
     const response = await axios(config);
     return response.data;
   } catch (err) {
-    // Wrap the error with context
     const status = err.response?.status || 503;
     const message =
       err.response?.data?.detail ||
       err.response?.data?.message ||
+      err.response?.data?.error ||
       err.message ||
       'Python AI service unavailable';
 
     const error = new Error(message);
     error.statusCode = status;
+    error.isOperational = true;
     error.original = err;
+    error.pythonDetail = err.response?.data;
     throw error;
   }
 }

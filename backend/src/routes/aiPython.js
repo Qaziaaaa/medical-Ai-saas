@@ -32,8 +32,17 @@ router.post(
   })
 );
 
+// POST /api/ai/python/analyze/triage — NLP symptom triage
+router.post(
+  '/analyze/triage',
+  [authenticate, authorize(['doctor', 'receptionist'])],
+  asyncHandler(async (req, res) => {
+    const result = await callPython('/analyze/triage', req.body, req.token);
+    res.json({ success: true, data: result });
+  })
+);
+
 // ── Future AI endpoints will go here ─────────────────────────
-// POST /api/ai/python/analyze/triage
 // POST /api/ai/python/analyze/interactions
 // POST /api/ai/python/analyze/xray
 // POST /api/ai/python/analyze/risk

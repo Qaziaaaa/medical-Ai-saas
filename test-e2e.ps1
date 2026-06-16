@@ -67,9 +67,16 @@ Check "Dash stats (receptionist)" $r "appointmentsToday"
 # 8. AI
 Write-Host "`n-- AI Symptom Checker --" -ForegroundColor Yellow
 $r = Invoke-RestMethod "$BASE/api/ai/symptom-check" -Method POST -Headers $h -ContentType "application/json" -Body '{"symptoms":"headache fever","patientAge":30,"patientGender":"male","medicalHistory":"none"}' -TimeoutSec 15
-Check "AI symptom check" $r "analysis"
+Check "AI symptom check" $r "possibleConditions"
 
-# 9. PDF
+# 9. AI Triage (keyword-based NLP)
+Write-Host "`n-- AI Triage --" -ForegroundColor Yellow
+$r = Invoke-RestMethod "$BASE/api/ai/python/analyze/triage" -Method POST -Headers $h -ContentType "application/json" -Body '{"symptoms":"chest pain radiating to left arm","age":55,"gender":"male"}' -TimeoutSec 10
+Check "Triage immediate" $r "triage_level"
+$r = Invoke-RestMethod "$BASE/api/ai/python/analyze/triage" -Method POST -Headers $h -ContentType "application/json" -Body '{"symptoms":"cold and cough"}' -TimeoutSec 10
+Check "Triage non-urgent" $r "triage_level"
+
+# 10. PDF
 Write-Host "`n-- PDF --" -ForegroundColor Yellow
 try {
   $r2 = Invoke-RestMethod "$BASE/api/prescriptions?limit=1" -Headers $h -TimeoutSec 5
