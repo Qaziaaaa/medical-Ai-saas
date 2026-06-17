@@ -7,8 +7,17 @@ const authenticate = require('../middleware/authenticate');
 const authorize = require('../middleware/authorize');
 const { callPython, callPythonWithFile } = require('../services/aiPythonService');
 const asyncHandler = require('../utils/asyncHandler');
+const AppError = require('../utils/AppError');
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/dicom'];
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_MIME_TYPES.includes(file.mimetype)) return cb(null, true);
+    cb(new AppError(`Invalid file type: ${file.mimetype}. Allowed: ${ALLOWED_MIME_TYPES.join(', ')}`, 400));
+  },
+});
 
 /**
  * All routes in this file proxy to the Python AI service.

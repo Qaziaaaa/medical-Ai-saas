@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const cors = require('cors');
 const mongoSanitize = require('express-mongo-sanitize');
+const rateLimit = require('express-rate-limit');
 
 const requestLogger = require('./middleware/requestLogger');
 const errorHandler = require('./middleware/errorHandler');
@@ -41,11 +42,31 @@ app.use(cors({
 }));
 
 // ── Body parsing ───────────────────────────────────────────────────────────────
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 
 // ── Input sanitization ─────────────────────────────────────────────────────────
 app.use(mongoSanitize());
+
+// ── Rate limiting (disabled in test environment) ───────────────────────────────
+const authLimiter = process.env.NODE_ENV === 'test' ? (_req, _res, next) => next() : rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5,              // 5 requests per minute per IP
+  message: { success: false, message: 'Too many login attempts, please try again later', data: null },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const globalLimiter = process.env.NODE_ENV === 'test' ? (_req, _res, next) => next() : rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  message: { success: false, message: 'Too many requests, please try again later', data: null },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/auth/login', authLimiter);
+app.use('/api', globalLimiter);
 
 // ── Request logging ────────────────────────────────────────────────────────────
 app.use(requestLogger);

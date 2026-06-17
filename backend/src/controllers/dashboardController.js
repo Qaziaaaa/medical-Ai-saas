@@ -16,7 +16,7 @@ const asyncHandler = require('../utils/asyncHandler');
  *   - shared:   appointmentsToday, totalPatients
  */
 const stats = asyncHandler(async (req, res) => {
-  const { role } = req.user;
+  const { role, id: userId } = req.user;
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -27,9 +27,10 @@ const stats = asyncHandler(async (req, res) => {
 
   const statsData = {};
 
-  // Shared: today's appointments total
+  // Shared: today's appointments total (scoped to doctor for doctors)
+  const appointmentFilter = role === 'doctor' ? { ...todayFilter, doctor: userId } : todayFilter;
   const [appointmentsToday, totalPatients] = await Promise.all([
-    Appointment.countDocuments(todayFilter),
+    Appointment.countDocuments(appointmentFilter),
     Patient.countDocuments({ deletedAt: null }),
   ]);
   statsData.appointmentsToday = appointmentsToday;
@@ -37,7 +38,7 @@ const stats = asyncHandler(async (req, res) => {
 
   // Doctor-specific
   if (role === 'doctor') {
-    const totalPrescriptions = await Prescription.countDocuments();
+    const totalPrescriptions = await Prescription.countDocuments({ doctor: userId });
     statsData.totalPrescriptions = totalPrescriptions;
   }
 

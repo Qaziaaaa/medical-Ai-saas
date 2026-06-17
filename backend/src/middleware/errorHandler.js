@@ -96,6 +96,13 @@ function errorHandler(err, req, res, next) {
       .json(buildBody('Token expired', [], err.stack));
   }
 
+  // ── Body-parser PayloadTooLargeError ────────────────────────────────────────
+  if (err.type === 'entity.too.large') {
+    return res
+      .status(413)
+      .json(buildBody('Request body too large', [], err.stack));
+  }
+
   // ── Operational AppError (thrown intentionally by services/controllers) ────
   if (err.isOperational === true) {
     return res

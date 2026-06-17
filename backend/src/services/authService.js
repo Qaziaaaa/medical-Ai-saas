@@ -26,9 +26,9 @@ async function hashPassword(plainPassword) {
  * @returns {Promise<{ token: string, user: object }>}
  */
 async function login(email, password) {
-  // Find user — password is included by default (no select:false on schema)
+  // Find user — password is excluded by default (select:false on schema)
   // Use .lean() to get a plain object so toJSON transform doesn't strip password
-  const user = await User.findOne({ email: email.toLowerCase().trim() }).lean();
+  const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password').lean();
 
   if (!user) {
     throw new AppError('Invalid email or password', 401);

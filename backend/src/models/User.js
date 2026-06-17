@@ -18,6 +18,7 @@ const UserSchema = new Schema(
     password: {
       type: String,
       required: true, // stores bcrypt hash — never plaintext
+      select: false,
     },
     role: {
       type: String,

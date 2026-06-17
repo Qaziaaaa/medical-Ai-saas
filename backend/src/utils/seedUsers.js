@@ -52,13 +52,10 @@ async function seed() {
   for (const userData of SEED_USERS) {
     const hashedPw = await hashPassword(userData.password);
     await User.create({ ...userData, password: hashedPw });
-    console.log(`✅  Created ${userData.role}: ${userData.email}  (password: ${userData.password})`);
+    console.log(`✅  Created ${userData.role}: ${userData.email}`);
   }
 
-  console.log('\n🎉  Seed complete. Demo credentials:');
-  for (const u of SEED_USERS) {
-    console.log(`   ${u.role.padEnd(14)} ${u.email}  /  ${u.password}`);
-  }
+  console.log('\n🎉  Seed complete.');
 
   await mongoose.disconnect();
 }
