@@ -1,0 +1,86 @@
+# AGENTS.md
+
+## Project Overview
+
+AI Clinic Management SaaS — a full-stack clinic management system with AI-powered symptom checking, appointment scheduling, patient records, and prescription management.
+
+- **Frontend**: React 18 + Vite + Tailwind CSS + React Router v6
+- **Backend**: Node.js + Express + MongoDB (Mongoose) with JWT auth
+- **AI Service**: Python FastAPI microservice (X-ray analysis)
+- **Testing**: Vitest (frontend), Jest + supertest (backend)
+
+## Setup Commands
+
+```bash
+# Backend
+cd backend
+npm install
+# Requires .env with MONGO_URI, JWT_SECRET, GROQ_API_KEY, GEMINI_API_KEY
+npm run dev        # Start dev server (nodemon)
+npm start          # Production start
+
+# Frontend
+cd frontend
+npm install
+npm run dev        # Vite dev server (port 5173)
+
+# AI Python service
+cd ai-service
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+## Testing Instructions
+
+### Backend (Jest, 37 suites, ~460 tests)
+```bash
+cd backend
+npm test                   # jest --runInBand --forceExit
+npm run test:watch         # Watch mode
+npx jest -t "test name"    # Run single test by name pattern
+npx jest tests/services/authService.test.js  # Single file
+```
+- All tests live in `backend/tests/` organized by type (`models/`, `controllers/`, `services/`, `integration/`, `middleware/`, `utils/`)
+- Uses `mongodb-memory-server` — no external DB needed
+- Run `--runInBand` to avoid MongoMemoryServer port conflicts
+
+### Frontend (Vitest, 25 suites, ~282 tests)
+```bash
+cd frontend
+npm test                          # vitest run (single run)
+npm run test:watch                # Watch mode
+npx vitest run --reporter verbose # Full test names
+npx vitest run -t "renders page"  # Run matching tests
+```
+- Tests mirror source structure in `frontend/src/__tests__/`
+- `getByRole('heading', …)` for page headings (avoids sidebar collisions)
+- `getAllByText` for elements that appear multiple times
+- Uses `jsdom` environment with `@testing-library/jest-dom` matchers
+
+## Development Workflow
+
+- Every `git commit` auto-pushes to origin (post-commit hook)
+- Lint before commit: `cd frontend && npm run lint` (ESLint, zero warnings)
+- Backend runs on port 5000, frontend on 5173 (proxied to backend)
+- Environment variables: see `.env.example` in backend/
+
+## Code Style
+
+- **Frontend**: JSX files, no automatic JSX transform — always `import React from 'react'`
+- **Backend**: CommonJS (`require`/`module.exports`), Express middleware pattern
+- **CSS**: Tailwind utility classes, no separate CSS files
+- **Imports**: Group by external → internal, separate by blank line
+
+## Build and Deployment
+
+- Frontend build: `cd frontend && npm run build` → outputs to `frontend/dist/`
+- Backend: `cd backend && npm start` (or deploy to Railway/Render)
+- AI service: Docker container with Python FastAPI + Groq SDK
+- See DEPLOYMENT.md for full deployment guide
+
+## Additional Notes
+
+- CRLF line endings on Windows (Git auto-converts)
+- `property.invariant.test.js` uses `fast-check` — known flaky, retry if it fails
+- Backend rate limiters disabled when `NODE_ENV=test`
+- `.env` is gitignored; `.env.example` has the schema
