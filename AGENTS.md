@@ -57,6 +57,15 @@ npx vitest run -t "renders page"  # Run matching tests
 - `getAllByText` for elements that appear multiple times
 - Uses `jsdom` environment with `@testing-library/jest-dom` matchers
 
+### E2E Smoke Test (Node.js, cross-platform)
+```bash
+node test-e2e.js                        # Default: http://localhost:5000
+BASE_URL=https://myapp.com node test-e2e.js  # Custom URL
+```
+- Standalone script (no test framework) — requires a running backend
+- Tests the full API flow: health, auth, patients, appointments, prescriptions, AI endpoints, PDF download
+- Exit code 0 = all passed, 1 = any failure
+
 ## Development Workflow
 
 - Every `git commit` auto-pushes to origin (post-commit hook)
