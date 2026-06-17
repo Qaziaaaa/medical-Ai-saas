@@ -66,6 +66,18 @@ BASE_URL=https://myapp.com node test-e2e.js  # Custom URL
 - Tests the full API flow: health, auth, patients, appointments, prescriptions, AI endpoints, PDF download
 - Exit code 0 = all passed, 1 = any failure
 
+### Python AI Service (pytest, 5 suites, ~46 tests)
+```bash
+cd ai-service
+pip install -r requirements.txt
+pytest                     # Run all tests
+pytest -v                  # Verbose
+pytest tests/test_keyword_triage.py -v  # Single file
+```
+- Tests in `ai-service/tests/`: health endpoint, keyword triage, triage router, drug checker, auth middleware
+- `conftest.py` mocks heavy ML deps (torch, transformers) — tests run without GPU
+- Requires Python 3.10+; `pip install -r requirements.txt` first
+
 ## Development Workflow
 
 - Every `git commit` auto-pushes to origin (post-commit hook)
