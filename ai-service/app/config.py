@@ -13,6 +13,7 @@ class Settings:
     JWT_ALGORITHM: str = "HS256"
     SERVICE_NAME: str = "ai-clinic-python"
     VERSION: str = "0.1.0"
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 
 
 settings = Settings()

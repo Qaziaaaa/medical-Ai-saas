@@ -78,7 +78,14 @@ router.post(
   })
 );
 
-// ── Future AI endpoints will go here ─────────────────────────
-// POST /api/ai/python/reports/generate
+// POST /api/ai/python/reports/generate — SOAP report from doctor notes
+router.post(
+  '/reports/generate',
+  [authenticate, authorize(['doctor'])],
+  asyncHandler(async (req, res) => {
+    const result = await callPython('/reports/generate', req.body, req.token);
+    res.json({ success: true, data: result });
+  })
+);
 
 module.exports = router;

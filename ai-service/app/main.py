@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import health, triage, drugs, xray, risk
+from app.routers import health, triage, drugs, xray, risk, reports
 from app.middleware.auth import verify_token
 
 app = FastAPI(
@@ -39,6 +39,7 @@ app.include_router(triage.router, prefix="/api/v1", dependencies=[Depends(verify
 app.include_router(drugs.router, prefix="/api/v1", dependencies=[Depends(verify_token)])
 app.include_router(xray.router, prefix="/api/v1", dependencies=[Depends(verify_token)])
 app.include_router(risk.router, prefix="/api/v1", dependencies=[Depends(verify_token)])
+app.include_router(reports.router, prefix="/api/v1", dependencies=[Depends(verify_token)])
 
 
 @app.on_event("startup")

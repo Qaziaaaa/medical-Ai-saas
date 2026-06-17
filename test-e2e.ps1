@@ -60,9 +60,9 @@ Check "List prescriptions" $r "prescriptions"
 # 7. Dashboard
 Write-Host "`n-- Dashboard --" -ForegroundColor Yellow
 $r = Invoke-RestMethod "$BASE/api/dashboard/stats" -Headers $h -TimeoutSec 5
-Check "Dash stats (doctor)" $r "appointmentsToday"
+Check "Dash stats (doctor)" $r "totalPatients"
 $r = Invoke-RestMethod "$BASE/api/dashboard/stats" -Headers $rh -TimeoutSec 5
-Check "Dash stats (receptionist)" $r "appointmentsToday"
+Check "Dash stats (receptionist)" $r "totalPatients"
 
 # 8. AI
 Write-Host "`n-- AI Symptom Checker --" -ForegroundColor Yellow
@@ -95,7 +95,12 @@ Check "Risk high" $r "risk_level"
 $r = Invoke-RestMethod "$BASE/api/ai/python/analyze/risk" -Method POST -Headers $h -ContentType "application/json" -Body '{"age":25,"conditions_count":0,"has_chronic_condition":false,"visits_last_6mo":1}' -TimeoutSec 30
 Check "Risk low" $r "risk_level"
 
-# 12. PDF
+# 12. SOAP Report Generator
+Write-Host "`n-- SOAP Report --" -ForegroundColor Yellow
+$r = Invoke-RestMethod "$BASE/api/ai/python/reports/generate" -Method POST -Headers $h -ContentType "application/json" -Body '{"notes":"Patient has persistent cough for 2 weeks, mild fever","patient_name":"Test Patient","age":42,"gender":"male"}' -TimeoutSec 60
+Check "SOAP report generated" $r "report"
+
+# 13. PDF
 Write-Host "`n-- PDF --" -ForegroundColor Yellow
 try {
   $r2 = Invoke-RestMethod "$BASE/api/prescriptions?limit=1" -Headers $h -TimeoutSec 5
