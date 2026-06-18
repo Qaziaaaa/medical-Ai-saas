@@ -4,8 +4,8 @@ from pydantic import BaseModel, Field
 class Finding(BaseModel):
     label: str
     confidence: float
-    medical_interp: str
-    is_actionable: bool
+    medical_interp: str | None = None
+    is_actionable: bool = False
 
 
 class XrayResponse(BaseModel):

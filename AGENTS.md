@@ -99,6 +99,26 @@ pytest tests/test_keyword_triage.py -v  # Single file
 - AI service: Docker container with Python FastAPI + Groq SDK
 - See DEPLOYMENT.md for full deployment guide
 
+## AI Service — API Endpoints (Python FastAPI, port 8000)
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/analyze/triage` | POST | Symptom triage (keyword + BioBERT) |
+| `/api/v1/analyze/ner` | POST | Medical entity extraction from clinical text |
+| `/api/v1/analyze/interactions` | POST | Drug-drug interaction checker |
+| `/api/v1/analyze/contraindications` | POST | Allergy + disease contraindication checker |
+| `/api/v1/analyze/assessment` | POST | Unified patient assessment (triage + risk + contraindications) |
+| `/api/v1/analyze/xray` | POST | Chest X-ray analysis (DenseNet121) |
+| `/api/v1/analyze/xray/finetune` | POST | Admin: trigger X-ray model fine-tuning |
+| `/api/v1/analyze/xray/use-finetuned` | POST | Admin: toggle fine-tuned / ImageNet model |
+| `/api/v1/analyze/risk` | POST | Health risk prediction (XGBoost) |
+
+### New AI Features (added June 2026)
+- **Medical NER** (`app/ner/`): Extracts diseases, medications, dosages, allergens, symptoms from clinical text using BioBERT NER (`brad1141/biobert-finetuned-ner`) with regex fallback via `app/ner/patterns.py`.
+- **Contraindication Checker** (`app/drugs/contraindications.py`): Checks drug-allergy and drug-disease conflicts with severity levels (`contraindicated` / `caution`).
+- **Unified Assessment** (`app/assessment/assessor.py`): Orchestrates triage + risk + contraindications into a single combined assessment with summary and recommendations.
+- **X-Ray Fine-Tuning** (`app/xray/finetune.py`): CLI and HTTP-triggerable pipeline to fine-tune DenseNet121 on CheXpert/NIH datasets. Saves checkpoints to `app/xray/checkpoints/`.
+
 ## Additional Notes
 
 - CRLF line endings on Windows (Git auto-converts)

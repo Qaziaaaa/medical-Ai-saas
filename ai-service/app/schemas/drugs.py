@@ -23,3 +23,30 @@ class InteractionResponse(BaseModel):
 
 class InteractionRequest(BaseModel):
     medications: list[str] = Field(..., min_length=2, description="List of medication names")
+
+
+class ContraindicationResult(BaseModel):
+    drug: str
+    severity: str = Field(..., pattern="^(contraindicated|caution)$")
+    type: str = Field(..., pattern="^(allergy|disease)$")
+    detail: str
+    allergen: str | None = None
+    condition: str | None = None
+
+
+class ContraindicationCounts(BaseModel):
+    contraindicated: int = 0
+    caution: int = 0
+
+
+class ContraindicationResponse(BaseModel):
+    contraindications: list[ContraindicationResult] = []
+    total: int = 0
+    has_contraindication: bool = False
+    counts: ContraindicationCounts = ContraindicationCounts()
+
+
+class ContraindicationRequest(BaseModel):
+    medications: list[str] = Field(..., min_length=1, description="List of medication names")
+    allergies: list[str] = Field(default_factory=list, description="Patient allergy list")
+    conditions: list[str] = Field(default_factory=list, description="Patient medical condition list")

@@ -28,3 +28,7 @@ coverage/
 # Python cache
 __pycache__/
 *.pyc
+
+# Playwright test output
+test-results/
+e2e/test-results*

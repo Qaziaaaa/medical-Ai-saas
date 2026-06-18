@@ -27,14 +27,18 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// Response interceptor — handle 401 by clearing auth state and redirecting
+// Response interceptor — handle 401 by clearing auth state and redirecting.
+// Skip redirect for login requests so LoginPage can show the error message.
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('clinic_token')
-      localStorage.removeItem('clinic_user')
-      window.location.href = '/login'
+      const isLoginRequest = error.config?.url?.includes('/auth/login')
+      if (!isLoginRequest) {
+        localStorage.removeItem('clinic_token')
+        localStorage.removeItem('clinic_user')
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }
