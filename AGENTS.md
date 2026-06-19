@@ -12,6 +12,11 @@ AI Clinic Management SaaS — a full-stack clinic management system with AI-powe
 ## Setup Commands
 
 ```bash
+# One-command dev (starts backend + frontend concurrently)
+npm install              # Also runs install:all for sub-projects
+npm run dev              # Backend :5000 + Frontend :5173
+
+# Or run individually:
 # Backend
 cd backend
 npm install
